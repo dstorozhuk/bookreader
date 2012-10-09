@@ -1,0 +1,207 @@
+<?php
+
+/**
+ * @file
+ * Allows users to read books use simple navigation.
+ *
+ */
+
+
+
+/**
+ *
+ * Implementation of hook_menu().
+ *
+ */
+function bookreader_menu() {
+  $items['read/%'] = array(
+    'title' => 'Book',
+    'page callback' => 'bookreader_read',
+    'page arguments' => array(1),
+    'access arguments' => array('read books'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['node/%/read'] = array(
+    'title' => 'Read',
+    'page callback' => 'bookreader_read',
+    'page arguments' => array(1),
+    'access arguments' => array('read books'),
+    'type' => MENU_LOCAL_TASK,
+  );
+  return $items;
+}
+
+
+
+function bookreader_perm() {
+  return array('read books');
+}
+/**
+ *
+ * Divide current book page.
+ *
+ */
+function bookreader_chapter_pages($node){
+  $node_text = $node->body;
+  $node_text = check_markup($node_text, 1); // TODO: use filter, not input type
+  $node_text_notags = strip_tags($node_text, '<p><img><br>');//
+  $node_text_notags = preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/i",'<$1$2>', $node_text_notags);
+  $node_text_split = wordwrap($node_text_notags, 1600, '$$split$$');
+  $node_text_blocks = explode('$$split$$', $node_text_split);
+  $output = array();
+
+  foreach($node_text_blocks as $node_text_block){
+     $node_text_block = check_markup($node_text_block, 1);
+     $output[] = $node_text_block;
+  }
+  $output[0] = "<h2>".check_plain($node->title)."</h2>".$output[0];
+  $blocks = array_chunk($output, 2);
+  return $blocks;
+
+}
+
+/**
+ *
+ * Display current book page.
+ *
+ */
+function bookreader_read($nid = 0) {
+
+  drupal_add_css(drupal_get_path('module', 'bookreader').'/bookreader.css');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/hyphenator.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/hotkeys.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/jquery.cycle.all.js');
+  jquery_ui_add('ui.slider');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/bookreader.js');
+  if($nid){
+
+    $node = node_load($nid);
+    $tree = menu_tree_all_data($node->book['menu_name'], $node->book);
+    $edit_link = NULL;
+    if(user_access('edit any book content')) {
+      $edit_link = l(t('Edit'), 'node/'.$node->nid.'/edit', array('attributes'=> array('id'=>'edit-link')));
+    }
+    $data = array_shift($tree);
+    $book_title = $data['link']['link_title'];
+
+    // get chapter divided on blocks
+    $blocks = bookreader_chapter_pages($node, $page = 0, $p = 0);
+    drupal_set_title($node->title);
+    if($data['below']){
+      foreach($data['below'] as $k => $item){
+        $data['below'][$k]['link']['link_path'] = str_replace("node",'read', $item['link']['link_path']);
+        $data['below'][$k]['link']['href'] = str_replace("node",'read', $item['link']['href']);
+      }
+    }
+
+    $book_menu_tree = ($data['below']) ? menu_tree_output($data['below']) : '';
+    $book_menu_tree = str_replace("node",'read', $book_menu_tree);
+    $book_navigation = $node->book;
+    return theme('book_chapter', $blocks, $book_menu_tree, $book_navigation, $edit_link);
+
+  }else{
+    $text = t('Select !link first', array('!link'=>l('book', 'library')));
+    return $text;
+  }
+}
+
+
+/**
+ *
+ * Implementation of hook_init().
+ *
+ */
+function bookreader_init() {
+  global $custom_theme;
+
+  $arg1 = arg(1);
+  if((arg(0) == "read" || arg(2) == "read") && !empty($arg1) &&  intval($arg1) != 0){
+    $custom_theme = 'reader';
+  }
+  drupal_add_js( '
+    $(document).ready(function() {
+        $("a.read-book").click(function () {
+          var screenWidth = screen.width;
+          var screenHeight = screen.height;
+          var left = (screenWidth - 1300)/2;
+          var top = (screenHeight - 800)/2;
+          var link = $(this).attr("href");
+          window.open( link, "book_window", "toolbar = 0,location = 0,directories=0,menubar=0,scrollbars=1,status=0,resizable=0,fullscreen=0,width=1300,height=800,left="+left+",top="+top);
+          return false;
+        });
+      });
+    ', 'inline');
+}
+
+/**
+ * Implementation of hook_theme()
+ */
+function bookreader_theme() {
+  return array(
+    'book_chapter' => array(
+      'arguments' => array('blocks' => array(), 'book_menu_tree'=>NULL, 'book_navigation' => NULL, 'edit_link' =>NULL),
+      'template' => 'book-chapter',
+    ),
+  );
+}
+
+
+/**
+ * Process variables for book-chapter.tpl.php.
+ *
+ * @see book-chapter.tpl
+ */
+function template_preprocess_book_chapter(&$variables) {
+  $book_link = $variables['book_navigation'];
+
+  // Provide extra variables for themers. Not needed by default.
+  $variables['book_id'] = $book_link['bid'];
+  $variables['book_title'] = check_plain($book_link['link_title']);
+  $variables['book_url'] = 'read/'. $book_link['bid'];
+  $variables['current_depth'] = $book_link['depth'];
+
+  $variables['tree'] = '';
+  if ($book_link['mlid']) {
+    $variables['tree'] = book_children($book_link);
+    //$variables['tree'] = str_replace("node",'read', $variables['tree']);
+
+    if ($prev = book_prev($book_link)) {
+      $prev_href = str_replace("node",'read', $prev['href']);
+      $prev_href = url($prev_href);
+      drupal_add_link(array('rel' => 'prev', 'href' => $prev_href));
+      $variables['prev_url'] = $prev_href;
+      $variables['prev_title'] = check_plain($prev['title']);
+    }
+    if ($book_link['plid'] && $parent = book_link_load($book_link['plid'])) {
+      $parent_href = str_replace("node",'read',$parent['href']);
+      $parent_href = url($parent_href);
+      drupal_add_link(array('rel' => 'up', 'href' => $parent_href));
+      $variables['parent_url'] = $parent_href;
+      $variables['parent_title'] = check_plain($parent['title']);
+    }
+    if ($next = book_next($book_link)) {
+      $next_href = str_replace("node",'read',$next['href']);
+      $next_href = url($next_href);
+      drupal_add_link(array('rel' => 'next', 'href' => $next_href));
+      $variables['next_url'] = $next_href;
+      $variables['next_title'] = check_plain($next['title']);
+    }
+  }
+
+  $variables['has_links'] = FALSE;
+  // Link variables to filter for values and set state of the flag variable.
+  $links = array('prev_url', 'prev_title', 'parent_url', 'parent_title', 'next_url', 'next_title');
+  foreach ($links as $link) {
+    if (isset($variables[$link])) {
+      // Flag when there is a value.
+      $variables['has_links'] = TRUE;
+    }
+    else {
+      // Set empty to prevent notices.
+      $variables[$link] = '';
+    }
+  }
+}
+
+
+

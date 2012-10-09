@@ -1,0 +1,10 @@
+; $Id
+name = Book reader
+description = Simple book reader
+
+dependencies[] = book
+dependencies[] = jquery_update
+dependencies[] = jquery_ui
+
+package = Darul
+core = 6.x
