@@ -27,26 +27,34 @@
  * @see template_preprocess_book_chapter()
  */
 ?>
-
-
+<div id="page_template" >
+  <div class="content hyphenat"></div>
+  <div class="footer" ><hr><span class="page-num">Page: </span><span class="page-total" >from: </span>Author: </div>
+</div>
+<div id="info" style="width: 200px; margin:  400px auto;"><h1>Please wait...</h1></div>
+<div id='help-info'>
+<?php print nl2br("ctrl+⇧: ".t('all chapters')."\n ctrl+⇦: ".t('previous chapter') ."\n ctrl+⇨: ".t('next chapter')."\n ⇨:". t('next page') ."\n ⇦: ".t('previous page')); ?>
+</div>
   <div id="book-wrapper" class="book-block">
-    <?php if(count($blocks) > 1): ?>
+
       <div href="" class="next-prec-rows" id="prev"></div>
       <div href="" class="next-prec-rows" id="next"></div>
-    <?php endif; ?>
+
 
     <div id="book-toolbar">
+      <div id="help-info-btn">F1: <?php print t('Help') ?></div>
       <?php if($edit_link) { print $edit_link;} ?>
+      <?php // print drupal_get_form('remote_url_read_form'); ?>
       <div id="show-hide-tolbar-btn"></div>
       <?php if($book_menu_tree): ?>
-	      <div id="book-menu-tree-wrapper">
-	        <h2><?php print ($parent_title) ? $parent_title : $book_title ;?></h2>
-	        <?php print $book_menu_tree;?>
-	      </div>
+        <div id="book-menu-tree-wrapper">
+          <h2><?php print ($parent_title) ? $parent_title : $book_title ;?></h2>
+          <?php print $book_menu_tree;?>
+        </div>
       <?php endif; ?>
-      
+
       <div id="slider-wrapper">
-      
+
         <div id="font-small" class="slide-inside"></div>
         <div class="slide-inside">
           <div id="slider-left-coner"></div>
@@ -54,29 +62,17 @@
           <div id="slider-right-coner"></div>
         </div>
         <div id="font-large" class="slide-inside"></div>
-      
+
       </div> <!-- /slider-wrapper -->
-      
+
       <?php if($book_menu_tree): ?><div id="chapters-btn"><?php print t('Chapters'); ?></div><?php endif; ?>
-      
+
     </div> <!-- /book-toolbar -->
-
+    <div id="book-content"></div>
     <?php if($blocks): ?>
-    <div id="book">
-
-      <?php foreach ($blocks as $block_number => $block): ?>
-
-      <div id="book-block-<?php print $block_number;?>" class="book-block">
-        <?php foreach ($block as $page_number => $page): ?>
-        <div id="book-page-<?php print $block_number.$page_number;?>" class="book-page hyphenate <?php print $page_number == 1 ? "even"  : "odd";?>">
-          <?php print $page;?>
-        </div>
-        <?php endforeach; ?>
-
-      </div> <!-- /book-block -->
-      <?php endforeach; ?>
-
-    </div> <!-- /book -->
+    <div id="newsletterContent" class="hyphenate">
+      <?php print $blocks; ?>
+    </div> <!-- /newsletterContent -->
 
       <?php if($tree): ?>
         <div id="table-of-contents" class="clear-block">
@@ -93,21 +89,21 @@
 
         <div id="book-navigation-<?php print $book_id; ?>" class="book-navigation">
           <div class="page-links clear-block">
-          	<?php if ($has_links): ?>
-	            <?php if ($prev_url) : ?>
-	              <a href="<?php print $prev_url; ?>" class="page-previous" title="<?php print t('Go to previous page'); ?>"><?php print t('‹ ') . $prev_title; ?></a>
-	            <?php endif; ?>
-	            <?php if ($parent_url) : ?>
-	              <a href="<?php print $parent_url; ?>" class="page-up" title="<?php print t('Go to parent page'); ?>"><?php print t('up'); ?></a>
-	            <?php endif; ?>
-	            <?php if ($next_url) : ?>
-	              <a href="<?php print $next_url; ?>" class="page-next" title="<?php print t('Go to next page'); ?>"><?php print $next_title . t(' ›'); ?></a>
-	            <?php endif; ?>
-						<?php  endif; ?>      
+            <?php if ($has_links): ?>
+              <?php if ($prev_url) : ?>
+                <a href="<?php print $prev_url; ?>" id="chapter-previous" class="page-previous" title="<?php print t('Go to previous page'); ?>"><?php print t('‹ ') . $prev_title; ?></a>
+              <?php endif; ?>
+              <?php if ($parent_url) : ?>
+                <a href="<?php print $parent_url; ?>" id="chapters" class="page-up" title="<?php print t('Go to parent page'); ?>"><?php print t('up'); ?></a>
+              <?php endif; ?>
+              <?php if ($next_url) : ?>
+                <a href="<?php print $next_url; ?>" id="chapter-next" class="page-next" title="<?php print t('Go to next page'); ?>"><?php print $next_title . t(' ›'); ?></a>
+              <?php endif; ?>
+            <?php  endif; ?>
           </div>
         </div>
-      
-      <?php if(count($blocks) > 1): ?>
+
+      <?php // if(count($blocks) > 1): ?>
       <div id="show-hide-statusbar-bar-btn"></div>
         <div id="slider-wrapper-nav">
 
@@ -116,21 +112,9 @@
             <div id="slider-right-coner"></div>
 
         </div>
-      <?php endif; ?>
+      <?php // endif; ?>
 
     </div> <!-- /book-statusbar -->
 
-<?php
-$max_nav = count($blocks);
-drupal_add_js("
-  $(document).ready(function() {
-    $('#slider-nav').slider({
-            min: 1,
-            max: $max_nav,
-            step: 1,
-            slide: function( event, ui ) {
-                $('#nav a').slice(ui.value-1,ui.value).trigger('click');
-            }
-        });
-      });   ",'inline');
-?>
+
+<?php  print drupal_get_form('fontsize_form');  ?>

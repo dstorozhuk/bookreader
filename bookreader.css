@@ -1,8 +1,8 @@
 #book-wrapper{font-family: "Trebuchet MS", Verdana, Georgia, sans-serif; position: relative;overflow: hidden; height: 100%;}
-#book{width: 92%;margin-left: auto;margin-right: auto;font-size: 1.4em;margin-top: 60px;}
+#book-content{width: 92%;margin-left: auto;margin-right: auto;font-size: 1.4em;margin-top: 60px;}
 #book-wrapper p{font-family: "Trebuchet MS", Verdana, Georgia, sans-serif; text-indent: 1em;line-height: 130%;}
 .book-page{width: 49%; float: left; text-align: justify;}
-.book-page h2{text-align: center;margin-bottom: 1em;}
+.column h2{text-align: center;margin-bottom: 1em;}
 .book-page.odd{padding-right: 1%;}
 .book-page.even{padding-left: 1%;}
 div.next-prec-rows{position: absolute; top: 0px; cursor: pointer; z-index: 99; text-indent: -3000px; width: 4%;}
@@ -29,7 +29,8 @@ div#next{right: 0px; background: transparent url(images/readerRightArrow.gif) no
 #slider-wrapper-nav #slider-right-coner{float: left; background: transparent url(images/progress.png) no-repeat -15px 0px;height: 11px; width: 11px;}
 #slider-wrapper-nav{ height: 21px; width: 80%;  margin-left: auto;margin-right: auto;}
 #book .menu{}
-#table-of-contents{padding-top: 15px;width: 16%;margin-left: auto;margin-right: auto;}
+#table-of-contents{padding-top: 15px;width: 30%;margin-left: auto;margin-right: auto;}
+#table-of-contents ul.menu{height: 400px; overflow-y: auto;}
 #table-of-contents h3{text-align: center;}
 #book-wrapper #book .menu li{border: none; }
 #nav{display: none; }
@@ -48,3 +49,29 @@ div#next{right: 0px; background: transparent url(images/readerRightArrow.gif) no
 #show-hide-statusbar-bar-btn.show-hide-statusbar-bar-btn-up{background-image: url(images/nav_control-dn.png);}
 #book-wrapper a#edit-link{font-weight: bold; color: white; position: absolute; top: 20px; left: 10px; text-decoration: none;}
 #book-wrapper a#edit-link:hover{text-decoration: underline;}
+#remote-url-read-form, .form-item, .form-item label, .form-item input{float: left;   }
+.page{ width: 100%; height: 800px; position: relative; }
+.page .content .column{ text-align: justify; color: #1B0F05; }
+.page .content .column blockquote{ border-left: 2px solid #999999; background: #DEDEDE; padding: 10px; margin: 4px 20px; clear: both; }
+.page .content .column img{ float: left; margin: 10px; }
+.page .content .column p{ padding: 0 10px; margin: 10px 0; }
+.page .content .column h1{ padding: 0 10px; }
+.page .header{ text-align: center; font-size: 18pt; font-family: helvetica, arial; padding: 20px 0 0; }
+.page .header hr, .page .footer hr{ width: 400px; }
+.page .footer{ text-align: center;position: absolute;width: 100%;bottom: 0;color: #918A7F;font-size: 14px;}
+.page .footer span.page-num{ position: absolute;bottom: 10px;right: 70px; }
+.page .footer span.page-total{position: absolute;bottom: 10px;right: 10px;}
+#page_template{ display: none; }
+.page .content .first{margin-right: 3%;}
+#help-info{-moz-box-shadow: 0px 0px 15px black; -webkit-box-shadow: 0px 0px 15px black;box-shadow: 0px 0px 15px black;
+	border-radius: 10px; -moz-border-radius: 10px; -webkit-border-radius: 10px; -khtml-border-radius: 10px; 
+	font-size: 2em; color: white; line-height: 150%; display: none; background-image: url(images/info-bg.png); 
+	background-repeat: repeat; padding: 30px;}
+#help-info-btn{position:absolute; top: 21px; left: 109px; color: white;z-index: 200;}
+#help-info-btn:hover{text-decoration: underline;}
+.ui-dialog{overflow: visible!important;}
+.ui-widget-overlay{position: absolute;top: 0; }
+.ui-dialog-titlebar{position: absolute;right: -15px;top: -15px;}
+a.ui-dialog-titlebar-close { display: inline-block; width: 45px; height: 45px; text-indent: -3000px;background-image: url(images/close-x.png) ; background-repeat: no-repeat;}
+.ui-icon-closethick{ display: inline-block;width: 45px; height: 45px;}
+.enclosure {border:1px dashed black}

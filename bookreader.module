@@ -6,8 +6,6 @@
  *
  */
 
-
-
 /**
  *
  * Implementation of hook_menu().
@@ -19,6 +17,21 @@ function bookreader_menu() {
     'page callback' => 'bookreader_read',
     'page arguments' => array(1),
     'access arguments' => array('read books'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['remoteread'] = array(
+    'title' => 'Book',
+    'page callback' => 'bookreader_get_remote_html',
+    //'page arguments' => array(1),
+    'access arguments' => array('read books'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['remoteread_js'] = array(
+    //'title' => 'Book',
+    'page callback' => 'bookreader_dropdown_callback',
+    //'page arguments' => array(1),
+    'access arguments' => array('read books'),
+    'access callback' => TRUE,
     'type' => MENU_CALLBACK,
   );
   $items['node/%/read'] = array(
@@ -37,6 +50,71 @@ function bookreader_perm() {
   return array('read books');
 }
 /**
+ * This function in development mode
+ */
+function bookreader_get_remote_html($url = NULL){
+
+  bookreader_add_book_css_js();
+  if($url!=NULL){
+    $url = check_plain($_GET['q']);
+    $url = substr($url ,11);
+  }
+
+  if($url){
+    include_once('simple_html_dom.php');
+
+    if($html = @file_get_html($url)){
+      $node = new stdClass();
+
+      $title = $html->find('center h2', 0)->plaintext != ""?  $html->find('center h2', 0)->plaintext : t("Title not found");
+      $node->title = drupal_convert_to_utf8($title, "UTF-8");
+
+      $body = $html->find('body',0)->outertext;
+      $node->body= drupal_convert_to_utf8($body , "UTF-8");//WINDOWS-1251
+
+      $blocks = bookreader_chapter_pages($node);
+      return theme('book_chapter', $blocks);
+    }else{
+      return t("Please, enter a valid url to page.");
+    }
+
+  }else{
+    return t("Please, enter a valid url to page.");
+  }
+
+}
+
+
+function bookreader_get_remote_html_2($url = NULL){
+
+  bookreader_add_book_css_js();
+
+  if($url){
+    include_once('simple_html_dom.php');
+
+    if($html = @file_get_html($url)){
+      $node = new stdClass();
+
+      $title = $html->find('center h2', 0)->plaintext != ""?  $html->find('center h2', 0)->plaintext : t("Title not found");
+      $node->title = drupal_convert_to_utf8($title,   variable_get('bookreader_remote_encoding', 'WINDOWS-1251'));
+
+      $body = $html->find('body',0)->outertext;
+      $node->body= drupal_convert_to_utf8($body, variable_get('bookreader_remote_encoding', 'WINDOWS-1251'));//WINDOWS-1251
+
+      $blocks = bookreader_chapter_pages($node);
+      return theme('book_chapter', $blocks);
+    }else{
+      return t("Please, enter a valid url to page.");
+    }
+
+  }else{
+    return t("Please, enter a valid url to page.");
+  }
+
+}
+
+
+/**
  *
  * Divide current book page.
  *
@@ -46,7 +124,8 @@ function bookreader_chapter_pages($node){
   $node_text = check_markup($node_text, 1); // TODO: use filter, not input type
   $node_text_notags = strip_tags($node_text, '<p><img><br>');//
   $node_text_notags = preg_replace("/<([a-z][a-z0-9]*)[^>]*?(\/?)>/i",'<$1$2>', $node_text_notags);
-  $node_text_split = wordwrap($node_text_notags, 1600, '$$split$$');
+  $text = "<h2>".check_plain($node->title)."</h2>".$node_text_notags;
+  /*$node_text_split = wordwrap($node_text_notags, 1600, '$$split$$');
   $node_text_blocks = explode('$$split$$', $node_text_split);
   $output = array();
 
@@ -54,25 +133,31 @@ function bookreader_chapter_pages($node){
      $node_text_block = check_markup($node_text_block, 1);
      $output[] = $node_text_block;
   }
-  $output[0] = "<h2>".check_plain($node->title)."</h2>".$output[0];
-  $blocks = array_chunk($output, 2);
-  return $blocks;
+  $output[0] = .$output[0];
+  $blocks = array_chunk($output, 2);*/
+  return $text;
+
+}
+
+function bookreader_add_book_css_js(){
+  drupal_add_css(drupal_get_path('module', 'bookreader').'/bookreader.css');
+
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/jquery-1.4.4.min.js');
+  jquery_ui_add(array('ui.slider',  'ui.dialog'));
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/autocolumn.min.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/jquery.afterresize.min.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/hyphenator.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/hotkeys.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/jquery.cycle.all.js');
+  drupal_add_js(drupal_get_path('module', 'bookreader').'/js/bookreader.js');
 
 }
 
 /**
- *
  * Display current book page.
- *
  */
 function bookreader_read($nid = 0) {
-
-  drupal_add_css(drupal_get_path('module', 'bookreader').'/bookreader.css');
-  drupal_add_js(drupal_get_path('module', 'bookreader').'/hyphenator.js');
-  drupal_add_js(drupal_get_path('module', 'bookreader').'/hotkeys.js');
-  drupal_add_js(drupal_get_path('module', 'bookreader').'/jquery.cycle.all.js');
-  jquery_ui_add('ui.slider');
-  drupal_add_js(drupal_get_path('module', 'bookreader').'/bookreader.js');
+  bookreader_add_book_css_js();
   if($nid){
 
     $node = node_load($nid);
@@ -113,9 +198,15 @@ function bookreader_read($nid = 0) {
  */
 function bookreader_init() {
   global $custom_theme;
+  //drupal_to_js($_SESSION['fontsize']);
+  if($_SESSION['fontsize']){
 
+  }
+     drupal_add_js(array('bookreader' => array('fontsize' => $_SESSION['fontsize'])), 'setting');
   $arg1 = arg(1);
-  if((arg(0) == "read" || arg(2) == "read") && !empty($arg1) &&  intval($arg1) != 0){
+  $url = substr(check_plain($_GET['q']),11);
+  //$url = substr($url ,11);
+  if(((arg(0) == "read" || arg(2) == "read") && !empty($arg1) &&  intval($arg1) != 0) || (arg(0) == "remoteread" && valid_url($url, TRUE))){
     $custom_theme = 'reader';
   }
   drupal_add_js( '
@@ -139,7 +230,7 @@ function bookreader_init() {
 function bookreader_theme() {
   return array(
     'book_chapter' => array(
-      'arguments' => array('blocks' => array(), 'book_menu_tree'=>NULL, 'book_navigation' => NULL, 'edit_link' =>NULL),
+      'arguments' => array('blocks' => NULL, 'book_menu_tree'=>NULL, 'book_navigation' => NULL, 'edit_link' =>NULL),
       'template' => 'book-chapter',
     ),
   );
@@ -203,5 +294,64 @@ function template_preprocess_book_chapter(&$variables) {
   }
 }
 
+function remote_url_read_form(&$form_state){
+  $form = array();
+
+  $form['url'] = array (
+       '#type' => 'textfield',
+       '#title' => t('Enter remote url'),
+       '#size' => '30',
+       //'#ahah' => array(
+       //  'path' => 'remoteread_js',
+       //  'wrapper' => 'book-wrapper',
+      // 'event' => 'change', // default value: does not need to be set explicitly.
+   // ),
+
+  );
+  $options = drupal_map_assoc(array("UTF-8","WINDOWS-1251"));
+  $form['encoding'] = array(
+    '#type' => 'select',
+    '#options' => $options
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Show'),
+  );
+
+  return $form;
+}
+
+
+/**
+ * Default submit handler for form. This one happens when the main submit
+ * button is pressed.
+ */
+function remote_url_read_form_submit($form, &$form_state) {
+
+  $url = $form_state['values']['url'];
+  variable_set('bookreader_remote_encoding', check_plain($form_state['values']['url']));
+  drupal_goto('remoteread/'.$url);
+
+}
+
+
+function fontsize_form(&$form_state){
+  print_r($_SESSION['fontsize']);
+  $form = array();
+  $form['fontsize'] = array(
+    '#type' => 'hidden',
+    '#default_value' => isset($_SESSION['fontsize']) ? $_SESSION['fontsize'] : 4,
+  );
+  return $form;
+}
+
+/**
+ * Default submit handler for form.
+ *
+ */
+function fontsize_form_submit($form, &$form_state) {
+  $_SESSION['fontsize'] = $form_state['values']['fontsize'];
+  drupal_set_message($_SESSION['fontsize']."test");
+}
 
 

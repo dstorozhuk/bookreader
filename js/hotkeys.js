@@ -3,6 +3,62 @@
  * Version : 2.01.B
  * By Binny V A
  * License : BSD
+ * Supported Keys
+ *
+ * The shortcut keys should be specified in this format ...
+ *
+ * Modifier[+Modifier..]+Key
+ * Example...
+ *
+ *  Ctrl+A
+ *  The valid modifiers are
+ *
+ * Ctrl
+ * Alt
+ *    Shift
+ *   Meta
+ *    You can specify a sequence without a modifier as well - like this...
+ *
+ *   shortcut.add("X",function() {
+ *      alert("Hello!");
+ *    });
+ *    The valid Keys are...
+ *
+ *   All alpha/numeric keys - abc...xyz,01..89
+ *   Special Characters - Every special character on a standard keyboard can be accessed.
+ *   Special Keys...
+ *    Tab
+ *    Space
+ *    Return
+ *    Enter
+ *    Backspace
+ *    Scroll_lock
+ *    Caps_lock
+ *    Num_lock
+ *    Pause
+ *    Insert
+ *    Home
+ *    Delete
+ *    End
+ *    Page_up
+ *    Page_down
+ *    Left
+ *    Up
+ *    Right
+ *    Down
+ *    F1
+ *    F2
+ *    F3
+ *    F4
+ *    F5
+ *    F6
+ *    F7
+ *    F8
+ *    F9
+ *    F10
+ *    F11
+ *    F12
+ *   These keys are case insensitive - so don't worry about using the correct case.
  */
 shortcut={all_shortcuts:{},add:function(e,g,a){var c={type:"keydown",propagate:false,disable_in_input:false,target:document,keycode:false};if(a)for(var f in c)typeof a[f]=="undefined"&&(a[f]=c[f]);else a=c;c=a.target;typeof a.target=="string"&&(c=document.getElementById(a.target));e=e.toLowerCase();f=function(b){b=b||window.event;if(a.disable_in_input){var d;if(b.target)d=b.target;else if(b.srcElement)d=b.srcElement;if(d.nodeType==3)d=d.parentNode;if(d.tagName=="INPUT"||d.tagName=="TEXTAREA")return}if(b.keyCode)code=
 b.keyCode;else if(b.which)code=b.which;d=String.fromCharCode(code).toLowerCase();code==188&&(d=",");code==190&&(d=".");var c=e.split("+"),h=0,f={"`":"~",1:"!",2:"@",3:"#",4:"$",5:"%",6:"^",7:"&",8:"*",9:"(",0:")","-":"_","=":"+",";":":","'":'"',",":"<",".":">","/":"?","\\":"|"},s={esc:27,escape:27,tab:9,space:32,"return":13,enter:13,backspace:8,scrolllock:145,scroll_lock:145,scroll:145,capslock:20,caps_lock:20,caps:20,numlock:144,num_lock:144,num:144,pause:19,"break":19,insert:45,home:36,"delete":46,
